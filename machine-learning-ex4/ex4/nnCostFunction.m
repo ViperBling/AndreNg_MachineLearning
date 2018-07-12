@@ -64,62 +64,68 @@ Theta2_grad = zeros(size(Theta2));
 
 X = [ones(m, 1) X];
 
-a2 = sigmoid(Theta1 * X');
-a2 = [ones(m, 1) a2'];
+% ------------------------------------------------------------------------------
+% CostFunction
 
-h_theta = sigmoid(Theta2 * a2');
-
-y_out = zeros(num_labels, m);
+c = 1:num_labels;
+yk = zeros(num_labels, m);      % 5000 * 10
 for i = 1:m,
-    y_out(y(i), i) = 1;
+    yk(:, i) = (c' == y(i));
 end
 
-J = (1/m) * sum( sum( (-y_out) .* log(h_theta) - (1 - y_out) .* log(1 - h_theta) ));
+
+a1 = X;                    % 5000 * 401 
+z2 = Theta1 * a1';         % 25 * 5000
+a2 = sigmoid(z2);     
+a2 = [ones(1, m); a2];      % 26 * 5000
+z3 = Theta2 * a2;          % 10 * 5000
+h_theta = sigmoid(z3);    
+
+J = (-1/m) * sum( sum( yk .* log(h_theta) + (1 - yk) .* log(1 - h_theta) ));
 
 
-% Regularization Formula
-t1 = Theta1(:, 2:size(Theta1, 2));
-t2 = Theta2(:, 2:size(Theta2, 2));
+% ------------------------------------------------------------------------------
+% Regularized cost function
 
-reg = (lambda / (2 * m)) * (sum(sum(t1 .^ 2)) + sum(sum(t2 .^ 2)));
+t1 = Theta1(:, 2:end);
+t2 = Theta2(:, 2:end);
+
+reg = (lambda / (2*m)) * (sum(sum(t1 .^ 2)) + sum(sum(t2 .^ 2)));
 
 J = J + reg;
 
-% ------------------------------------------------------------
-% Backprop
+
+% ------------------------------------------------------------------------------
+% Backpropagation
 
 for j = 1:m,
-    a1 = X(j, :);           % 取出X的每一行(每行都是一个样本)，a1为1*401
-    z2 = Theta1 * a1';      % Theta1为25*401。z2为25*1
-    
-    a2 = sigmoid(z2);       
-    a2 = [1; a2];           % a2 26*1
-    
-    z3 = Theta2 * a2;       % Theta2 10*26，z3 10*1
-    a3 = sigmoid(z3);       % i.e. a3 == h_theta
+    a1 = X(j, :);       % get one sample each times
+    z2 = Theta1 * a1';  % 25 * 1
+    a2 = sigmoid(z2);   % 25 * 1
+    a2 = [1; a2];
+    z3 = Theta2 * a2;   % 10 * 1
+    a3 = sigmoid(z3); 
     
     z2 = [1; z2];
-    
-    delta_3 = a3 - y_out(:, j);   % y_out是个列向量，delta3 10*1
-    delta_2 = (Theta2' * delta_3) .* sigmoidGradient(z2);
+    delta_3 = a3 - yk(:, j); 
+    delta_2 = (Theta2' * delta_3) .* sigmoidGradient(z2); 
     delta_2 = delta_2(2:end);
     
     Theta2_grad = Theta2_grad + delta_3 * a2';
     Theta1_grad = Theta1_grad + delta_2 * a1;
     
-end;
+end
 
-% ------------------------------------------------------------
-% Regularization
+% Gradient Descent
 
 Theta1_grad(:, 1) = Theta1_grad(:, 1) ./ m;
-Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) ./ m + ((lambda/m) * Theta1(:, 2:end));
+Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) ./ m + (lambda/m) * Theta1(:, 2:end);
 
 Theta2_grad(:, 1) = Theta2_grad(:, 1) ./ m;
-Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) ./ m + ((lambda / m) * Theta2(:, 2:end));
-    
-% -------------------------------------------------------------
+Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) ./ m + (lambda/m) * Theta2(:, 2:end);
 
+
+% -------------------------------------------------------------
 
 % =========================================================================
 
