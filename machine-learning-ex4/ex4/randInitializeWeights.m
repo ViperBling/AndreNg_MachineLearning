@@ -22,12 +22,6 @@ W = zeros(L_out, 1 + L_in);
 epsilon_init = 0.12;
 W = rand(L_out, 1 + L_in) * 2 * epsilon_init - epsilon_init;
 
-
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 7ce85d7b3b441ce5dbeefa8123b9714bc591e986
 % =========================================================================
 
 end
